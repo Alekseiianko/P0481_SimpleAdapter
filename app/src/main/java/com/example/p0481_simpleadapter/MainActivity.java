@@ -61,9 +61,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 lvSimple.getItemAtPosition(position);
-                lvSimple.removeViewAt(position);
+                lvSimple.removeViewInLayout(view);
             }
         });
+
+        sAdapter.notifyDataSetChanged();
     }
 
 }
