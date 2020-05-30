@@ -1,5 +1,6 @@
 package com.example.p0481_simpleadapter;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
@@ -17,6 +18,8 @@ import android.view.ContextMenu.ContextMenuInfo;
 import android.view.MenuItem;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
+import com.google.gson.Gson;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -29,8 +32,11 @@ public class MainActivity extends AppCompatActivity {
     final String ATTRIBUTE_NAME_TEXT = "text";
     final String ATTRIBUTE_NAME_QUANTITY = "quantity";
     SimpleAdapter sAdapter;
+    String[] texts ;
+    int[] quantity2;
+    SharedPreferences sharedPreferences ;
 
-    ArrayList<Map<String, Object>> data;
+    List<Map<String, Object>> data;
 
     ListView lvSimple;
 
@@ -38,18 +44,25 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Gson gson = new Gson();
+        String json = gson.toJson(texts);
+        sharedPreferences = getSharedPreferences("USER",MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("Set",json );
+        editor.apply();
 
-        String[] texts = {Util.TEXT1, Util.TEXT2, Util.TEXT3, Util.TEXT4,
-                Util.TEXT5, Util.TEXT6, Util.TEXT7, Util.TEXT8};
+        texts = prepareContent();
 
-        int[] quantity2 = {texts[0].length(), texts[1].length(), texts[2].length(),
-                texts[3].length(), texts[4].length(), texts[5].length(), texts[6].length(), texts[7].length()};
+        quantity2 = new int[]{texts[0].length(), texts[1].length(), texts[2].length(),
+                texts[3].length(), texts[4].length(), texts[5].length(), texts[6].length(), texts[7].length(),
+                texts[8].length(), texts[9].length(), texts[10].length(),
+                texts[11].length(), texts[12].length(), texts[13].length(), texts[14].length(), texts[15].length(),
+                texts[16].length(), texts[17].length()};
 
-        data = new ArrayList<>(
-                texts.length);
+        data = new ArrayList<>(texts.length);
         Map<String, Object> m;
         for (int i = 0; i < texts.length; i++) {
-            m = new HashMap<String, Object>();
+            m = new HashMap<>();
             m.put(ATTRIBUTE_NAME_TEXT, texts[i]);
             m.put(ATTRIBUTE_NAME_QUANTITY, quantity2[i]);
             data.add(m);
@@ -82,4 +95,10 @@ public class MainActivity extends AppCompatActivity {
         }
         return super.onContextItemSelected(item);
     }
+
+    @NonNull
+    private String[] prepareContent() {
+        return getString(R.string.large_text).split("\n\n") ;
+    }
 }
+
