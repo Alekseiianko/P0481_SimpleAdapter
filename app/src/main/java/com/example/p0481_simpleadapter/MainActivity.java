@@ -7,6 +7,8 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.view.View;
 import android.view.ViewManager;
 import android.widget.AdapterView;
@@ -18,12 +20,15 @@ import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.MenuItem;
 import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.Toast;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
 import static java.lang.String.valueOf;
@@ -38,8 +43,8 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences sharedPreferences;
     private List<Map<String, Object>> data;
     private SwipeRefreshLayout swipeRefreshLayout;
-
-
+    private Map<String, String> texts;
+    private SharedPreferences.Editor editor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,14 +53,14 @@ public class MainActivity extends AppCompatActivity {
         sharedPreferences = getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE);
         if (sharedPreferences.getAll().size() == 0) {
             String[] split = getString(R.string.large_text).split("\n\n");
-            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor = sharedPreferences.edit();
             for (String string : split) {
                 editor.putString(string, valueOf(string.length()));
             }
             editor.apply();
         }
 
-        Map<String, String> texts = prepareContent();
+        texts = prepareContent();
 
         data = new ArrayList<>(texts.size());
 
@@ -76,8 +81,15 @@ public class MainActivity extends AppCompatActivity {
         lvSimple.setAdapter(adapter);
         registerForContextMenu(lvSimple);
 
-        swipe();
-
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                sharedPreferences.edit().clear().apply();
+                swipeRefreshLayout.setRefreshing(false);
+                adapter.notifyDataSetChanged();
+            }
+        });
     }
 
     @Override
@@ -104,14 +116,4 @@ public class MainActivity extends AppCompatActivity {
         return (Map<String, String>) sharedPreferences.getAll();
     }
 
-    public void swipe(){
-        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                sharedPreferences.edit().clear().commit();
-                swipeRefreshLayout.setRefreshing(false);
-            }
-        });
-    }
 }
