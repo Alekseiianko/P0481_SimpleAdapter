@@ -85,7 +85,13 @@ public class MainActivity extends AppCompatActivity {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                sharedPreferences.edit().clear().apply();
+                data.clear();
+                for (String text : prepareContent().keySet()) {
+                    Map<String, Object> row = new HashMap<>();
+                    row.put(ATTRIBUTE_NAME_TEXT, text);
+                    row.put(ATTRIBUTE_NAME_QUANTITY, valueOf(text.length()));
+                    data.add(row);
+                }
                 swipeRefreshLayout.setRefreshing(false);
                 adapter.notifyDataSetChanged();
             }
@@ -103,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
         if (item.getItemId() == CM_DELETE_ID) {
             AdapterContextMenuInfo acmi = (AdapterContextMenuInfo) item.getMenuInfo();
             String name = (String) data.get(acmi.position).get(ATTRIBUTE_NAME_TEXT);
-            sharedPreferences.edit().remove(name).apply();
+//            sharedPreferences.edit().remove(name).apply();
             data.remove(acmi.position);
             adapter.notifyDataSetChanged();
             return true;
