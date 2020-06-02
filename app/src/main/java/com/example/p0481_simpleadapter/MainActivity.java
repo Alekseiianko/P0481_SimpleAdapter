@@ -2,6 +2,7 @@ package com.example.p0481_simpleadapter;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -17,66 +18,66 @@ import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.MenuItem;
 import android.widget.AdapterView.AdapterContextMenuInfo;
-
-import com.google.gson.Gson;
-
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
+import static java.lang.String.valueOf;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final int CM_DELETE_ID = 1;
-    final String ATTRIBUTE_NAME_TEXT = "text";
-    final String ATTRIBUTE_NAME_QUANTITY = "quantity";
-    SimpleAdapter sAdapter;
-    String[] texts ;
-    int[] quantity2;
-    SharedPreferences sharedPreferences ;
+    private static final String ATTRIBUTE_NAME_TEXT = "text";
+    private static final String ATTRIBUTE_NAME_QUANTITY = "quantity";
+    private static final String PREFERENCES_NAME = "Lol";
+    private SimpleAdapter adapter;
+    private SharedPreferences sharedPreferences;
+    private List<Map<String, Object>> data;
+    private SwipeRefreshLayout swipeRefreshLayout;
 
-    List<Map<String, Object>> data;
 
-    ListView lvSimple;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Gson gson = new Gson();
-        String json = gson.toJson(texts);
-        sharedPreferences = getSharedPreferences("USER",MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("Set",json );
-        editor.apply();
+        sharedPreferences = getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE);
+        if (sharedPreferences.getAll().size() == 0) {
+            String[] split = getString(R.string.large_text).split("\n\n");
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            for (String string : split) {
+                editor.putString(string, valueOf(string.length()));
+            }
+            editor.apply();
+        }
 
-        texts = prepareContent();
+        Map<String, String> texts = prepareContent();
 
-        quantity2 = new int[]{texts[0].length(), texts[1].length(), texts[2].length(),
-                texts[3].length(), texts[4].length(), texts[5].length(), texts[6].length(), texts[7].length(),
-                texts[8].length(), texts[9].length(), texts[10].length(),
-                texts[11].length(), texts[12].length(), texts[13].length(), texts[14].length(), texts[15].length(),
-                texts[16].length(), texts[17].length()};
+        data = new ArrayList<>(texts.size());
 
-        data = new ArrayList<>(texts.length);
-        Map<String, Object> m;
-        for (int i = 0; i < texts.length; i++) {
-            m = new HashMap<>();
-            m.put(ATTRIBUTE_NAME_TEXT, texts[i]);
-            m.put(ATTRIBUTE_NAME_QUANTITY, quantity2[i]);
-            data.add(m);
+        for (String text : texts.keySet()) {
+            Map<String, Object> row = new HashMap<>();
+            row.put(ATTRIBUTE_NAME_TEXT, text);
+            row.put(ATTRIBUTE_NAME_QUANTITY, valueOf(text.length()));
+            data.add(row);
         }
 
         String[] from = {ATTRIBUTE_NAME_TEXT, ATTRIBUTE_NAME_QUANTITY};
         int[] to = {R.id.tvText, R.id.tvText2};
 
-        sAdapter = new SimpleAdapter(this, data, R.layout.item,
+        adapter = new SimpleAdapter(this, data, R.layout.item,
                 from, to);
 
-        lvSimple = findViewById(R.id.lvSimple);
-        lvSimple.setAdapter(sAdapter);
+        ListView lvSimple = findViewById(R.id.lvSimple);
+        lvSimple.setAdapter(adapter);
         registerForContextMenu(lvSimple);
+
+        swipe();
+
     }
 
     @Override
@@ -89,16 +90,28 @@ public class MainActivity extends AppCompatActivity {
     public boolean onContextItemSelected(MenuItem item) {
         if (item.getItemId() == CM_DELETE_ID) {
             AdapterContextMenuInfo acmi = (AdapterContextMenuInfo) item.getMenuInfo();
+            String name = (String) data.get(acmi.position).get(ATTRIBUTE_NAME_TEXT);
+            sharedPreferences.edit().remove(name).apply();
             data.remove(acmi.position);
-            sAdapter.notifyDataSetChanged();
+            adapter.notifyDataSetChanged();
             return true;
         }
         return super.onContextItemSelected(item);
     }
 
     @NonNull
-    private String[] prepareContent() {
-        return getString(R.string.large_text).split("\n\n") ;
+    private Map<String, String> prepareContent() {
+        return (Map<String, String>) sharedPreferences.getAll();
+    }
+
+    public void swipe(){
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                sharedPreferences.edit().clear().commit();
+                swipeRefreshLayout.setRefreshing(false);
+            }
+        });
     }
 }
-
