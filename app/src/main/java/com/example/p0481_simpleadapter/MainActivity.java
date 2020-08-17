@@ -45,11 +45,13 @@ public class MainActivity extends AppCompatActivity {
     private SwipeRefreshLayout swipeRefreshLayout;
     private Map<String, String> texts;
     private SharedPreferences.Editor editor;
+    private ArrayList<Integer> arrayList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         sharedPreferences = getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE);
         if (sharedPreferences.getAll().size() == 0) {
             String[] split = getString(R.string.large_text).split("\n\n");
@@ -96,6 +98,11 @@ public class MainActivity extends AppCompatActivity {
                 adapter.notifyDataSetChanged();
             }
         });
+        /*
+        savedInstanceState.getIntegerArrayList("lol");
+        adapter.notifyDataSetChanged();
+        Здесь ли нужно удалять элементы с заданными индексами???
+         */
     }
 
     @Override
@@ -109,8 +116,11 @@ public class MainActivity extends AppCompatActivity {
         if (item.getItemId() == CM_DELETE_ID) {
             AdapterContextMenuInfo acmi = (AdapterContextMenuInfo) item.getMenuInfo();
             String name = (String) data.get(acmi.position).get(ATTRIBUTE_NAME_TEXT);
-//            sharedPreferences.edit().remove(name).apply();
             data.remove(acmi.position);
+            /*
+            arrayList.add(acmi.position);
+            Правильно ли я добавил индекс в лист?
+             */
             adapter.notifyDataSetChanged();
             return true;
         }
@@ -122,4 +132,18 @@ public class MainActivity extends AppCompatActivity {
         return (Map<String, String>) sharedPreferences.getAll();
     }
 
+    private void fillPrefs() {
+        String[] split = getString(R.string.large_text).split("\n\n");
+        editor = sharedPreferences.edit();
+        for (String string : split) {
+            editor.putString(string, valueOf(string.length()));
+        }
+        editor.apply();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putIntegerArrayList("lol", arrayList);
+    }
 }
