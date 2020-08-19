@@ -51,7 +51,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        if(savedInstanceState != null){
+            savedInstanceState.getIntegerArrayList("lol");
+            for(int i : arrayList){
+                Integer integer = i;
+                data.remove(integer.intValue());
+            }
+        }
         sharedPreferences = getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE);
         if (sharedPreferences.getAll().size() == 0) {
             String[] split = getString(R.string.large_text).split("\n\n");
@@ -98,11 +104,6 @@ public class MainActivity extends AppCompatActivity {
                 adapter.notifyDataSetChanged();
             }
         });
-        /*
-        savedInstanceState.getIntegerArrayList("lol");
-        adapter.notifyDataSetChanged();
-        Здесь ли нужно удалять элементы с заданными индексами???
-         */
     }
 
     @Override
@@ -116,11 +117,10 @@ public class MainActivity extends AppCompatActivity {
         if (item.getItemId() == CM_DELETE_ID) {
             AdapterContextMenuInfo acmi = (AdapterContextMenuInfo) item.getMenuInfo();
             String name = (String) data.get(acmi.position).get(ATTRIBUTE_NAME_TEXT);
-            data.remove(acmi.position);
-            /*
+
             arrayList.add(acmi.position);
-            Правильно ли я добавил индекс в лист?
-             */
+            data.remove(acmi.position);
+
             adapter.notifyDataSetChanged();
             return true;
         }
