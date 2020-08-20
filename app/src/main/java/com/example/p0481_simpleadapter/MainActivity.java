@@ -45,19 +45,21 @@ public class MainActivity extends AppCompatActivity {
     private SwipeRefreshLayout swipeRefreshLayout;
     private Map<String, String> texts;
     private SharedPreferences.Editor editor;
-    private ArrayList<Integer> arrayList = new ArrayList<>();
+    private ArrayList<Integer> arrayList;
+    private static final String LOL = "lol";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        if(savedInstanceState != null){
-            savedInstanceState.getIntegerArrayList("lol");
-            for(int i : arrayList){
-                Integer integer = i;
-                data.remove(integer.intValue());
-            }
+        if (savedInstanceState != null) {
+            arrayList = savedInstanceState.getIntegerArrayList(LOL);
         }
+
+        if (arrayList == null) {
+            arrayList = new ArrayList<>();
+        }
+
         sharedPreferences = getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE);
         if (sharedPreferences.getAll().size() == 0) {
             String[] split = getString(R.string.large_text).split("\n\n");
@@ -77,6 +79,10 @@ public class MainActivity extends AppCompatActivity {
             row.put(ATTRIBUTE_NAME_TEXT, text);
             row.put(ATTRIBUTE_NAME_QUANTITY, valueOf(text.length()));
             data.add(row);
+        }
+
+        for (int i : arrayList) {
+            data.remove(i);
         }
 
         String[] from = {ATTRIBUTE_NAME_TEXT, ATTRIBUTE_NAME_QUANTITY};
@@ -144,6 +150,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putIntegerArrayList("lol", arrayList);
+        outState.putIntegerArrayList(LOL, arrayList);
     }
 }
